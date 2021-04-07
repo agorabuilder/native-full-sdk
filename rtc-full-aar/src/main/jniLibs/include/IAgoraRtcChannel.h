@@ -503,8 +503,6 @@ public:
     }
     /** Occurs when a voice or video stream URL address is added to the interactive live streaming.
 
-     @warning Agora will soon stop the service for injecting online media streams on the client. If you have not implemented this service, Agora recommends that you do not use it.
-
      @param rtcChannel IChannel
      @param url The URL address of the externally injected stream.
      @param uid User ID.
@@ -616,7 +614,9 @@ public:
      - If you want to join the same channel from different devices, ensure that the UIDs in all devices are different.
      - Ensure that the app ID you use to generate the token is the same with the app ID used when creating the `IRtcEngine` object.
 
-     @param token The token generated at your server. For details, see [Generate a token](https://docs.agora.io/en/Interactive%20Broadcast/token_server?platform=Windows).
+     @param token The token for authentication:
+     - In situations not requiring high security: You can use the temporary token generated at Console. For details, see [Get a temporary token](https://docs.agora.io/en/Agora%20Platform/token?platform=All%20Platforms#generate-a-token).
+     - In situations requiring high security: Set it as the token generated at your server. For details, see [Generate a token](https://docs.agora.io/en/Interactive%20Broadcast/token_server?platform=All%20Platforms).
      @param info (Optional) Additional information about the channel. This parameter can be set as null. Other users in the channel do not receive this information.
      @param uid The user ID. A 32-bit unsigned integer with a value ranging from 1 to (232-1). This parameter must be unique. If `uid` is not assigned (or set as `0`), the SDK assigns a `uid` and reports it in the \ref agora::rtc::IChannelEventHandler::onJoinChannelSuccess "onJoinChannelSuccess" callback. The app must maintain this user ID.
      @param options The channel media options: \ref agora::rtc::ChannelMediaOptions::ChannelMediaOptions "ChannelMediaOptions"
@@ -628,8 +628,7 @@ public:
         - -3(ERR_NOT_READY): The SDK fails to be initialized. You can try re-initializing the SDK.
         - -5(ERR_REFUSED): The request is rejected. This may be caused by the following:
            - You have created an IChannel object with the same channel name.
-           - You have joined and published a stream in a channel created by the IChannel object. When you join a channel created by the IRtcEngine object, the SDK publishes the local audio and video streams to that channel by default. Because the SDK does not support publishing a local stream to more than one channel simultaneously, an error occurs in this occasion.
-        - -7(ERR_NOT_INITIALIZED): The SDK is not initialized before calling this method.
+           - You have joined and published a stream in a channel created by the IChannel object.
      */
     virtual int joinChannel(const char* token,
                             const char* info,
@@ -647,7 +646,9 @@ public:
      @note To ensure smooth communication, use the same parameter type to identify the user. For example, if a user joins the channel with a user ID, then ensure all the other users use the user ID too. The same applies to the user account.
      If a user joins the channel with the Agora Web SDK, ensure that the uid of the user is set to the same parameter type.
 
-     @param token The token generated at your server. For details, see [Generate a token](https://docs.agora.io/en/Interactive%20Broadcast/token_server?platform=Windows).
+     @param token The token generated at your server:
+     - For low-security requirements: You can use the temporary token generated at Console. For details, see [Get a temporary toke](https://docs.agora.io/en/Voice/token?platform=All%20Platforms#get-a-temporary-token).
+     - For high-security requirements: Set it as the token generated at your server. For details, see [Get a token](https://docs.agora.io/en/Voice/token?platform=All%20Platforms#get-a-token).
      @param userAccount The user account. The maximum length of this parameter is 255 bytes. Ensure that the user account is unique and do not set it as null. Supported character scopes are:
      - All lowercase English letters: a to z.
      - All uppercase English letters: A to Z.
@@ -662,7 +663,6 @@ public:
         - #ERR_INVALID_ARGUMENT (-2)
         - #ERR_NOT_READY (-3)
         - #ERR_REFUSED (-5)
-        - #ERR_NOT_INITIALIZED (-7)
      */
     virtual int joinChannelWithUserAccount(const char* token,
                                            const char* userAccount,
@@ -807,9 +807,11 @@ public:
      *
      * In scenarios requiring high security, Agora recommends calling this method to enable the built-in encryption before joining a channel.
      *
-     * All users in the same channel must use the same encryption mode and encryption key. After a user leaves the channel, the SDK automatically disables the built-in encryption. To enable the built-in encryption, call this method before the user joins the channel again.
+     * All users in the same channel must use the same encryption mode and encryption key. Once all users leave the channel, the encryption key of this channel is automatically cleared.
      *
-     * @note If you enable the built-in encryption, you cannot use the RTMP or RTMPS streaming function.
+     * @note
+     * - If you enable the built-in encryption, you cannot use the RTMP or RTMPS streaming function.
+     * - You need to add an external encryption library when integrating the Android and iOS SDK. See the advanced guide *Channel Encryption*.
      *
      * @param enabled Whether to enable the built-in encryption:
      * - true: Enable the built-in encryption.
@@ -931,7 +933,7 @@ public:
 
      @note
      - For this method to work, enable stereo panning for remote users by calling the \ref agora::rtc::IRtcEngine::enableSoundPositionIndication "enableSoundPositionIndication" method before joining a channel.
-     - This method requires hardware support. For the best sound positioning, we recommend using a wired headset.
+     - This method requires hardware support. For the best sound positioning, we recommend using a stereo speaker.
      - Ensure that you call this method after joining a channel.
 
      @param uid The ID of the remote user.
@@ -1119,11 +1121,6 @@ public:
 
      The method result returns in the \ref agora::rtc::IRtcEngineEventHandler::onApiCallExecuted "onApiCallExecuted" callback.
 
-     @note You can call this method either before or after joining a channel. If you call both
-     \ref IChannel::setRemoteVideoStreamType "setRemoteVideoStreamType" and
-     \ref IChannel::setRemoteDefaultVideoStreamType "setRemoteDefaultVideoStreamType", the SDK applies the settings in
-     the \ref IChannel::setRemoteVideoStreamType "setRemoteVideoStreamType" method.
-
      @param userId The ID of the remote user sending the video stream.
      @param streamType  Sets the video-stream type. See #REMOTE_VIDEO_STREAM_TYPE.
      @return
@@ -1145,11 +1142,6 @@ public:
      stream is set, the system automatically sets the resolution, frame rate, and bitrate of the low-video stream.
 
      The method result returns in the \ref agora::rtc::IRtcEngineEventHandler::onApiCallExecuted "onApiCallExecuted" callback.
-
-     @note You can call this method either before or after joining a channel. If you call both
-     \ref IChannel::setRemoteVideoStreamType "setRemoteVideoStreamType" and
-     \ref IChannel::setRemoteDefaultVideoStreamType "setRemoteDefaultVideoStreamType", the SDK applies the settings in
-     the \ref IChannel::setRemoteVideoStreamType "setRemoteVideoStreamType" method.
 
      @param streamType Sets the default video-stream type. See #REMOTE_VIDEO_STREAM_TYPE.
 
@@ -1302,8 +1294,6 @@ public:
     - The remote client:
       - \ref agora::rtc::IChannelEventHandler::onUserJoined "onUserJoined" (uid: 666), if the method call is successful and the online media stream is injected into the channel.
 
-     @warning Agora will soon stop the service for injecting online media streams on the client. If you have not implemented this service, Agora recommends that you do not use it.
-
      @note
      - Ensure that you enable the RTMP Converter service before using this function. See Prerequisites in the advanced guide *Push Streams to CDN*.
      - This method applies to the Native SDK v2.4.1 and later.
@@ -1328,8 +1318,6 @@ public:
     /** Removes the voice or video stream URL address from a live streaming.
 
      This method removes the URL address (added by the \ref IChannel::addInjectStreamUrl "addInjectStreamUrl" method) from the live streaming.
-
-     @warning Agora will soon stop the service for injecting online media streams on the client. If you have not implemented this service, Agora recommends that you do not use it.
 
      @note If this method is called successfully, the SDK triggers the \ref IChannelEventHandler::onUserOffline "onUserOffline" callback and returns a stream uid of 666.
 
@@ -1423,7 +1411,7 @@ public:
      * \ref agora::rtc::IChannelEventHandler::onChannelMediaRelayStateChanged
      *  "onChannelMediaRelayStateChanged" callback with the
      * #RELAY_ERROR_SERVER_NO_RESPONSE (2) or
-     * #RELAY_ERROR_SERVER_CONNECTION_LOST (8) error code. You can leave the
+     * #RELAY_ERROR_SERVER_CONNECTION_LOST (8) state code. You can leave the
      * channel by calling the \ref leaveChannel() "leaveChannel" method, and
      * the media stream relay automatically stops.
      *
@@ -1493,7 +1481,6 @@ public:
      * @return
      * - 0: Success.
      * - < 0: Failure.
-     *    - -158 (ERR_MODULE_SUPER_RESOLUTION_NOT_FOUND): You have not integrated the dynamic library for the super-resolution algorithm.
      */
     virtual int enableRemoteSuperResolution(uid_t userId, bool enable) = 0;
     /// @endcond

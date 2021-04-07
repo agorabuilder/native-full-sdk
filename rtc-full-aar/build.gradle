@@ -36,6 +36,6 @@ publish {
     userOrg = 'agora'
     groupId = 'io.agora.rtc'
     artifactId = 'full-sdk'
-    publishVersion = '3.3.2'
+    publishVersion = '3.3.1'
     desc = 'Agora IO'
 }
