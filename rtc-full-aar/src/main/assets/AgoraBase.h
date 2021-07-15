@@ -621,6 +621,7 @@ enum ERROR_CODE_TYPE {
 
   /** **DEPRECATED** */
   ERR_ADM_IOS_SESSION_SAMPLERATR_ZERO = 1221,
+  ERR_ADM_IOS_RECORDING_MALFUNCTION = 1222,
   /** 1301: Audio device module: An audio driver abnormality or a
    * compatibility issue occurs. Solutions: Disable and restart the audio
    * device, or reboot the system.*/

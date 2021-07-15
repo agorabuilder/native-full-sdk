@@ -2344,6 +2344,18 @@ enum CHANNEL_MEDIA_RELAY_EVENT {
   /** 11: The video profile is sent to the server.
    */
   RELAY_EVENT_VIDEO_PROFILE_UPDATE = 11,
+  /** 12: pause send packet to dest channel success.
+   */
+  RELAY_EVENT_PAUSE_SEND_PACKET_TO_DEST_CHANNEL_SUCCESS = 12,
+  /** 13: pause send packet to dest channel failed.
+   */
+  RELAY_EVENT_PAUSE_SEND_PACKET_TO_DEST_CHANNEL_FAILED = 13,
+  /** 14: resume send packet to dest channel success.
+   */
+  RELAY_EVENT_RESUME_SEND_PACKET_TO_DEST_CHANNEL_SUCCESS = 14,
+  /** 15: pause send packet to dest channel failed.
+   */
+  RELAY_EVENT_RESUME_SEND_PACKET_TO_DEST_CHANNEL_FAILED = 15,
 };
 
 /** The state code in CHANNEL_MEDIA_RELAY_STATE. */
@@ -8300,7 +8312,7 @@ class IRtcEngine {
    */
   virtual int enableLoopbackRecording(bool enabled, const char* deviceName = NULL) = 0;
 
-#if (defined(__APPLE__) && TARGET_OS_MAC && !TARGET_OS_IPHONE)
+#if ((defined(__APPLE__) && TARGET_OS_MAC && !TARGET_OS_IPHONE)) || defined(_WIN32)
   /** Shares the whole or part of a screen by specifying the display ID.
    *
    * @note
@@ -9088,6 +9100,21 @@ class IRtcEngine {
    * - < 0: Failure.
    */
   virtual int updateChannelMediaRelay(const ChannelMediaRelayConfiguration& configuration) = 0;
+
+  /** pause the channels for media stream relay.
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+  virtual int pauseAllChannelMediaRelay() = 0;
+
+  /** resume the channels for media stream relay.
+   * @return
+   * - 0: Success.
+   * - < 0: Failure.
+   */
+  virtual int resumeAllChannelMediaRelay() = 0;
+
   /** Stops the media stream relay.
    *
    * Once the relay stops, the host quits all the destination
