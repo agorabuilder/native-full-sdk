@@ -209,37 +209,32 @@ class IVideoFrameObserver {
     /** Video pixel height.
      */
     int height;  // height of video frame
-    /**
-     * For YUV data, the line span of the Y buffer; for RGBA data, the total data length.
+    /** Line span of the Y buffer within the YUV data.
      */
     int yStride;  // stride of Y data buffer
-    /**
-     * For YUV data, the line span of the U buffer; for RGBA data, the value is 0.
+    /** Line span of the U buffer within the YUV data.
      */
     int uStride;  // stride of U data buffer
-    /**
-     * For YUV data, the line span of the V buffer; for RGBA data, the value is 0.
+    /** Line span of the V buffer within the YUV data.
      */
     int vStride;  // stride of V data buffer
-    /**
-     * For YUV data, the pointer to the Y buffer; for RGBA data, the data buffer.
+    /** Pointer to the Y buffer pointer within the YUV data.
      */
     void* yBuffer;  // Y data buffer
-    /**
-     * For YUV data, the pointer to the U buffer; for RGBA data, the value is 0.
+    /** Pointer to the U buffer pointer within the YUV data.
      */
     void* uBuffer;  // U data buffer
-    /**
-     * For YUV data, the pointer to the V buffer; for RGBA data, the value is 0.
+    /** Pointer to the V buffer pointer within the YUV data.
      */
     void* vBuffer;  // V data buffer
-    /** The clockwise rotation angle of the video frame. The supported values are 0, 90, 180, or 270 degrees.
+    /** Set the rotation of this frame before rendering the video. Supports 0, 90, 180, 270 degrees clockwise.
      */
     int rotation;  // rotation of this frame (0, 90, 180, 270)
-    /**
-     * The Unix timestamp (ms) when the video frame is rendered. This timestamp can be used to guide the rendering of
-     * the video frame. This parameter is required.
-     */
+    /** The timestamp (ms) of the external audio frame. It is mandatory. You can use this parameter for the following purposes:
+     - Restore the order of the captured audio frame.
+     - Synchronize audio and video frames in video-related scenarios, including scenarios where external video sources are used.
+   @note This timestamp is for rendering the video stream, and not for capturing the video stream.
+   */
     int64_t renderTimeMs;
     int avsync_type;
   };
@@ -369,7 +364,7 @@ class IVideoFrameObserver {
    * - `POSITION_PRE_ENCODER(1 << 2)`: The position before encoding the video data, which corresponds to the \ref onPreEncodeVideoFrame "onPreEncodeVideoFrame" callback.
    *
    * @note
-   * - To observe multiple frame positions, use '|' (the OR operator).
+   * - Use '|' (the OR operator) to observe multiple frame positions.
    * - This callback observes `POSITION_POST_CAPTURER(1 << 0)` and `POSITION_PRE_RENDERER(1 << 1)` by default.
    * - To conserve the system consumption, you can reduce the number of frame positions that you want to observe.
    *
@@ -556,19 +551,12 @@ class IExternalVideoRenderFactory {
 /** The external video frame.
  */
 struct ExternalVideoFrame {
-  /**
-   * The data type of the video frame.
-   *
-   * @since v3.5.0
+  /** The video buffer type.
    */
   enum VIDEO_BUFFER_TYPE {
-    /** 1: The data type is raw data.
+    /** 1: The video buffer in the format of raw data.
      */
     VIDEO_BUFFER_RAW_DATA = 1,
-    /**
-     * 2: The data type is the pixel.
-     */
-    VIDEO_BUFFER_PIXEL_BUFFER = 2
   };
 
   /** The video pixel format.
@@ -641,144 +629,58 @@ struct ExternalVideoFrame {
 
   ExternalVideoFrame() : cropLeft(0), cropTop(0), cropRight(0), cropBottom(0), rotation(0) {}
 };
-/**
- * The video frame type.
- *
- * @since v3.4.5
- */
-enum CODEC_VIDEO_FRAME_TYPE {
-  /**
-   * 0: (Default) A black frame
-   */
-  CODEC_VIDEO_FRAME_TYPE_BLANK_FRAME = 0,
-  /**
-   * 3: The keyframe
-   */
-  CODEC_VIDEO_FRAME_TYPE_KEY_FRAME = 3,
-  /**
-   * 4: The delta frame
-   */
-  CODEC_VIDEO_FRAME_TYPE_DELTA_FRAME = 4,
-  /**
-   * 5: The B-frame
-   */
-  CODEC_VIDEO_FRAME_TYPE_B_FRAME = 5,
-  /**
-   * Unknown frame
-   */
-  CODEC_VIDEO_FRAME_TYPE_UNKNOW
-};
 
-/**
- * The clockwise rotation angle of the video frame.
- *
- * @since v3.4.5
- */
-enum VIDEO_ROTATION {
-  /**
-   * 0: 0 degree
-   */
-  VIDEO_ROTATION_0 = 0,
-  /**
-   * 90: 90 degrees
-   */
-  VIDEO_ROTATION_90 = 90,
-  /**
-   * 180: 180 degrees
-   */
-  VIDEO_ROTATION_180 = 180,
-  /**
-   * 270: 270 degrees
-   */
-  VIDEO_ROTATION_270 = 270
-};
+enum CODEC_VIDEO_FRAME_TYPE { CODEC_VIDEO_FRAME_TYPE_BLANK_FRAME = 0, CODEC_VIDEO_FRAME_TYPE_KEY_FRAME = 3, CODEC_VIDEO_FRAME_TYPE_DELTA_FRAME = 4, CODEC_VIDEO_FRAME_TYPE_B_FRAME = 5, CODEC_VIDEO_FRAME_TYPE_UNKNOW };
 
-/**
- * The video codec type.
- *
- * @since v3.4.5
- */
+enum VIDEO_ROTATION { VIDEO_ROTATION_0 = 0, VIDEO_ROTATION_90 = 90, VIDEO_ROTATION_180 = 180, VIDEO_ROTATION_270 = 270 };
+
+/** Video codec types */
 enum VIDEO_CODEC_TYPE {
-  /** 1: VP8 */
+  /** Standard VP8 */
   VIDEO_CODEC_VP8 = 1,
-  /** 2: (Default) H.264 */
+  /** Standard H264 */
   VIDEO_CODEC_H264 = 2,
-  /** 3: Enhanced VP8 */
+  /** Enhanced VP8 */
   VIDEO_CODEC_EVP = 3,
-  /** 4: Enhanced H.264 */
+  /** Enhanced H264 */
   VIDEO_CODEC_E264 = 4,
 };
-
-/**
- * The VideoEncodedFrame struct.
- *
- * @since v3.4.5
- */
+/// @cond
+/** The struct of VideoEncodedFrame. */
 struct VideoEncodedFrame {
   VideoEncodedFrame() : codecType(VIDEO_CODEC_H264), width(0), height(0), buffer(nullptr), length(0), frameType(CODEC_VIDEO_FRAME_TYPE_BLANK_FRAME), rotation(VIDEO_ROTATION_0), renderTimeMs(0) {}
   /**
-   * The video codec type. See #VIDEO_CODEC_TYPE.
+   * The video codec: #VIDEO_CODEC_TYPE.
    */
   VIDEO_CODEC_TYPE codecType;
-  /**
-   * The width (px) of the video.
-   */
+  /** The width (px) of the video.   */
   int width;
-  /**
-   * The height (px) of the video.
-   */
+  /**  The height (px) of the video.   */
   int height;
-  /**
-   * The video buffer, which is in the `DirectByteBuffer` data type.
-   */
+  /**  The buffer of video encoded frame   */
   const uint8_t* buffer;
-  /**
-   * The length (in bytes) of the video buffer.
-   */
+  /** The Length of video encoded frame buffer.   */
   unsigned int length;
-  /**
-   * The video frame type. See #CODEC_VIDEO_FRAME_TYPE.
-   */
+  /** The frame type of the encoded video frame  */
   CODEC_VIDEO_FRAME_TYPE frameType;
-  /**
-   * The clockwise rotation angle of the video frame. See #VIDEO_ROTATION.
-   */
+  /** The rotation information of the encoded video frame  */
   VIDEO_ROTATION rotation;
-  /**
-   * The Unix timestamp (ms) when the video frame is rendered. This timestamp
-   * can be used to guide the rendering of the video frame. This parameter is required.
-   */
+  /** The timestamp for rendering the video.   */
   int64_t renderTimeMs;
 };
-/**
- * The IVideoEncodedFrameObserver class.
- *
- * @since v3.4.5
- */
+
 class IVideoEncodedFrameObserver {
  public:
   /**
-   * Gets the local encoded video frame.
+   * Occurs each time the SDK receives an encoded video image.
+   * @param videoEncodedFrame The information of the encoded video frame: VideoEncodedFrame.
    *
-   * @since v3.4.5
-   *
-   * After you successfully register the local encoded video frame observer,
-   * the SDK triggers this callback each time a video frame is received. You
-   * can get the local encoded video frame in `videoEncodedFrame` and then
-   * process the video data according to your scenario. After processing,
-   * you can use `videoEncodedFrame` to pass the processed video data back to
-   * the SDK.
-   *
-   * @param videoEncodedFrame The local encoded video frame. See VideoEncodedFrame.
-   *
-   * @return
-   * - true: If the video frame processing fails, the video frame is not passed back to the SDK.
-   * - false: If the video frame processing fails, the video frame is still passed back to the SDK.
    */
   virtual bool onVideoEncodedFrame(const VideoEncodedFrame& videoEncodedFrame) = 0;
 
   virtual ~IVideoEncodedFrameObserver() {}
 };
+/// @endcond
 
 class IMediaEngine {
  public:
@@ -816,6 +718,7 @@ class IMediaEngine {
    * - < 0: Failure.
    */
   virtual int registerVideoFrameObserver(IVideoFrameObserver* observer) = 0;
+  virtual int registerVideoFrameSnapshotObserver(IVideoFrameObserver* observer) = 0;
   /** **DEPRECATED** */
   virtual int registerVideoRenderFactory(IExternalVideoRenderFactory* factory) = 0;
   /** **DEPRECATED** Use \ref agora::media::IMediaEngine::pushAudioFrame(IAudioFrameObserver::AudioFrame* frame) "pushAudioFrame(IAudioFrameObserver::AudioFrame* frame)" instead.
@@ -853,7 +756,6 @@ class IMediaEngine {
    * audio data for playback.
    *
    * @note
-   * - Ensure that you call this method after joining a channel.
    * - Once you call the \ref agora::media::IMediaEngine::pullAudioFrame
    * "pullAudioFrame" method successfully, the app will not get any audio
    * data from the
@@ -906,27 +808,7 @@ class IMediaEngine {
    - < 0: Failure.
    */
   virtual int pushVideoFrame(ExternalVideoFrame* frame) = 0;
-  /**
-   * Registers a local encoded video frame observer.
-   *
-   * @since v3.4.5
-   *
-   * After you successfully register the local encoded video frame observer,
-   * the SDK triggers the callbacks that you have implemented in the
-   * IVideoEncodedFrameObserver class each time a video frame is received.
-   *
-   * @note
-   * - Ensure that you call this method before joining a channel.
-   * - The width and height of the video obtained through the observer may
-   * change due to poor network conditions and user-adjusted resolution.
-   *
-   * @param observer The local encoded video frame observer. See IVideoEncodedFrameObserver.
-   * If null is passed, the observer registration is canceled.
-   *
-   * @return
-   * - 0: Success.
-   * - < 0: Failure.
-   */
+
   virtual int registerVideoEncodedFrameObserver(IVideoEncodedFrameObserver* observer) = 0;
 };
 
