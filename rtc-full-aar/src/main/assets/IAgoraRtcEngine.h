@@ -4210,6 +4210,14 @@ class IRtcEngineEventHandler {
   /** Occurs when a specific remote user enables/disables the video
    * module.
    *
+   * You can also use the
+   * \ref onRemoteVideoStateChanged() "onRemoteVideoStateChanged" callback
+   * with the following parameters:
+   * - #REMOTE_VIDEO_STATE_STOPPED (0) and
+   * #REMOTE_VIDEO_STATE_REASON_REMOTE_MUTED (5).
+   * - #REMOTE_VIDEO_STATE_DECODING (2) and
+   * #REMOTE_VIDEO_STATE_REASON_REMOTE_UNMUTED (6).
+   *
    * Once the video module is disabled, the remote user can only use a
    * voice call. The remote user cannot send or receive any video from
    * other users.
@@ -4478,6 +4486,14 @@ class IRtcEngineEventHandler {
 
   /** Occurs when a specified remote user enables/disables the local video
    * capturing function.
+   *
+   * You can also use the
+   * \ref onRemoteVideoStateChanged() "onRemoteVideoStateChanged" callback
+   * with the following parameters:
+   * - #REMOTE_VIDEO_STATE_STOPPED (0) and
+   * #REMOTE_VIDEO_STATE_REASON_REMOTE_MUTED (5).
+   * - #REMOTE_VIDEO_STATE_DECODING (2) and
+   * #REMOTE_VIDEO_STATE_REASON_REMOTE_UNMUTED (6).
    *
    * This callback is only applicable to the scenario when the user only
    * wants to watch the remote video without sending any video stream to the
